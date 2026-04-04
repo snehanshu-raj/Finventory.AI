@@ -41,12 +41,6 @@ function PageLoader() {
 }
 
 function ProtectedRoutes() {
-  const isOnboarded = useUserStore((s) => s.isOnboarded);
-
-  if (!isOnboarded) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
   return (
     <AppLayout>
       <Suspense fallback={<PageLoader />}>
@@ -68,39 +62,45 @@ function ProtectedRoutes() {
 
 export default function App() {
   const theme = useUIStore((s) => s.theme);
-  const isOnboarded = useUserStore((s) => s.isOnboarded);
   const setUser = useUserStore((s) => s.setUser);
+  const clearUser = useUserStore((s) => s.clearUser);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isOnboarded, setIsOnboarded] = useState(false);
 
-  // Check backend onboarding status on app mount
+  // Always check API on mount - source of truth is database
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const checkOnboardingFromDB = async () => {
       try {
-        const response = await usersApi.checkOnboarding();
-        const data = response as unknown as { onboarded: boolean; user_id: string };
+        const user = await usersApi.getOnboardingData();
+        const userData = user as unknown as { 
+          id: string
+          name: string
+          email: string
+          household_profile?: { household_size?: number }
+        };
         
-        // If user is onboarded in backend but not in localStorage, update store
-        if (data.onboarded && !isOnboarded) {
-          // Fetch user profile to get name and email
-          try {
-            const profile = await usersApi.getUser(data.user_id);
-            const p = profile as unknown as { id: string; name: string; email: string };
-            setUser(p.id, p.name, p.email);
-          } catch {
-            // If profile fetch fails, still mark as onboarded with just ID
-            setUser(data.user_id, 'User', 'user@example.com');
-          }
+        // Check if user has actual onboarding data
+        const hasHousehold = userData.household_profile?.household_size && userData.household_profile.household_size > 0;
+        const hasName = userData.name && userData.name.trim() !== '';
+        
+        if (hasHousehold && hasName) {
+          setUser(userData.id, userData.name, userData.email);
+          setIsOnboarded(true);
+        } else {
+          clearUser();
+          setIsOnboarded(false);
         }
       } catch (err) {
-        // Silently fail - user might not have internet or backend isn't ready
         console.debug('Onboarding check failed:', err);
+        clearUser();
+        setIsOnboarded(false);
       } finally {
         setIsInitializing(false);
       }
     };
 
-    checkOnboarding();
-  }, []);
+    checkOnboardingFromDB();
+  }, [setUser, clearUser]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -120,7 +120,7 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
+            <Route path="/*" element={isOnboarded ? <ProtectedRoutes /> : <Navigate to="/onboarding" replace />} />
           </Routes>
         </Suspense>
       </BrowserRouter>

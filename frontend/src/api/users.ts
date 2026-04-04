@@ -57,12 +57,15 @@ export const usersApi = {
   onboard: (data: OnboardingPayload) =>
     client.post<never, UserProfile>('/api/v1/users/onboarding', data),
 
-  checkOnboarding: () =>
-    client.get<never, { onboarded: boolean; user_id: string }>('/api/v1/users/check-onboarding'),
+  getOnboardingData: () =>
+    client.get<never, UserProfile>('/api/v1/users/onboarding/data'),
 
-  getUser: (userId: string) =>
-    client.get<never, UserProfile>(`/api/v1/users/${userId}`, { params: { user_id: undefined } }),
+  deleteOnboarding: () =>
+    client.delete<never, { success: boolean; message: string }>('/api/v1/users/onboarding'),
 
-  updateStaples: (userId: string, staples: OnboardingPayload['diet_profile']['staples']) =>
-    client.patch<never, UserProfile>(`/api/v1/users/${userId}/staples`, { staples }, { params: { user_id: undefined } }),
+  getUser: () =>
+    client.get<never, UserProfile>('/api/v1/users/profile'),
+
+  updateStaples: (staples: OnboardingPayload['diet_profile']['staples']) =>
+    client.patch<never, UserProfile>('/api/v1/users/staples', { staples }),
 };

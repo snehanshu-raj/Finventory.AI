@@ -42,7 +42,7 @@ export default function Settings() {
   // User profile & staples
   const { data: userProfile, isLoading: userLoading } = useQuery({
     queryKey: ['user', userId],
-    queryFn: () => usersApi.getUser(userId),
+    queryFn: () => usersApi.getUser(),
     enabled: activeTab === 'Staples' || activeTab === 'Preferences',
   });
 
@@ -55,7 +55,7 @@ export default function Settings() {
 
   const staplesMutation = useMutation({
     mutationFn: (staples: Array<{ canonical_item_id: string; canonical_name: string; daily_consumption_estimate: number; unit: string; threshold_quantity: number }>) =>
-      usersApi.updateStaples(userId, staples),
+      usersApi.updateStaples(staples),
     onSuccess: () => {
       toast.success('Staples updated!');
       queryClient.invalidateQueries({ queryKey: ['user', userId] });

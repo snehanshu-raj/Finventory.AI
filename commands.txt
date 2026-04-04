@@ -1,0 +1,4 @@
+cd /home/srj/expense-tracker
+source venv/bin/activate
+# Make sure MongoDB is running on localhost:27017
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

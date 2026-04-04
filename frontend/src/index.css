@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
+:root {
   /* Modern premium design system */
   --color-bg: #0f172a;
   --color-bg-secondary: #1a2744;
@@ -26,14 +28,6 @@
   --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
   --gradient-success: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
-
-  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
-
-  --radius-card: 16px;
-  --radius-btn: 12px;
-  --radius-badge: 8px;
-  --radius-full: 9999px;
 }
 
 * {

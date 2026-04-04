@@ -71,7 +71,9 @@ export default function App() {
   useEffect(() => {
     const checkOnboardingFromDB = async () => {
       try {
+        console.log('Checking onboarding data from API...');
         const user = await usersApi.getOnboardingData();
+        console.log('Onboarding data received:', user);
         const userData = user as unknown as { 
           id: string
           name: string
@@ -83,15 +85,19 @@ export default function App() {
         const hasHousehold = userData.household_profile?.household_size && userData.household_profile.household_size > 0;
         const hasName = userData.name && userData.name.trim() !== '';
         
+        console.log('hasHousehold:', hasHousehold, 'hasName:', hasName);
+        
         if (hasHousehold && hasName) {
+          console.log('User is onboarded, showing dashboard');
           setUser(userData.id, userData.name, userData.email);
           setIsOnboarded(true);
         } else {
+          console.log('User not onboarded, showing onboarding form');
           clearUser();
           setIsOnboarded(false);
         }
       } catch (err) {
-        console.debug('Onboarding check failed:', err);
+        console.error('Onboarding check failed:', err);
         clearUser();
         setIsOnboarded(false);
       } finally {

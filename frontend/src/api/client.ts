@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { useUserStore } from '@/store/userStore';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  baseURL: '/', // Use relative paths - works through ngrok, localhost, and all hosts
   timeout: 30_000,
 });
 

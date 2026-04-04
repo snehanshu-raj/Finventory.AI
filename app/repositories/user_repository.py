@@ -44,6 +44,8 @@ class UserRepository:
         if fixed_id:
             filter_query = {"_id": ObjectId(fixed_id)}
             set_on_insert["email"] = email
+            # Remove email from $set to avoid conflict with $setOnInsert
+            data.pop("email", None)
 
         result = await self._col().find_one_and_update(
             filter_query,

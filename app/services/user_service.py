@@ -123,6 +123,19 @@ class UserService:
 
         return self._to_response(user)
 
+    async def delete_onboarding(self, user_id: str) -> dict:
+        """Delete user's onboarding data (preferences and dietProfile)."""
+        from bson import ObjectId
+        result = await user_repo._col().update_one(
+            {"_id": ObjectId(user_id)},
+            {"$unset": {"preferences": "", "dietProfile": "", "householdProfile": ""}}
+        )
+        return {
+            "success": result.modified_count > 0, 
+            "message": "Onboarding data deleted",
+            "modified_count": result.modified_count
+        }
+
     # ── Helpers ────────────────────────────────────────────────────────
 
     @staticmethod
@@ -131,18 +144,26 @@ class UserService:
         hp = user.get("householdProfile", {})
         dp = user.get("dietProfile", {})
         prefs = user.get("preferences", {})
-        return {
+        
+        response = {
             "id": user["_id"],
             "email": user.get("email", ""),
             "name": user.get("name", ""),
             "created_at": user.get("createdAt", datetime.utcnow()),
             "updated_at": user.get("updatedAt", datetime.utcnow()),
-            "household_profile": {
+        }
+        
+        # Only include household_profile if it exists in DB
+        if "householdProfile" in user:
+            response["household_profile"] = {
                 "household_size": hp.get("householdSize", 1),
                 "adults": hp.get("adults", 1),
                 "children": hp.get("children", 0),
-            },
-            "diet_profile": {
+            }
+        
+        # Only include diet_profile if it exists in DB
+        if "dietProfile" in user:
+            response["diet_profile"] = {
                 "staples": [
                     {
                         "canonical_item_id": s.get("canonicalItemId", ""),
@@ -153,14 +174,18 @@ class UserService:
                     }
                     for s in dp.get("staples", [])
                 ]
-            },
-            "preferences": {
+            }
+        
+        # Only include preferences if it exists in DB
+        if "preferences" in user:
+            response["preferences"] = {
                 "currency": prefs.get("currency", "USD"),
                 "locale": prefs.get("locale", "en-US"),
                 "notification_enabled": prefs.get("notificationEnabled", True),
                 "notification_channels": prefs.get("notificationChannels", ["in_app"]),
-            },
-        }
+            }
+        
+        return response
 
 
 user_service = UserService()

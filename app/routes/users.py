@@ -30,3 +30,17 @@ async def update_staples(body: UpdateStaplesRequest, user_id: str = Depends(get_
     staples = [s.model_dump() for s in body.staples]
     result = await user_service.update_staples(user_id, staples)
     return success_response(result, "Staples updated")
+
+
+@router.get("/onboarding/data")
+async def get_onboarding_data(user_id: str = Depends(get_user_id)):
+    """Fetch onboarding data from DB."""
+    result = await user_service.get_user(user_id)
+    return success_response(result)
+
+
+@router.delete("/onboarding")
+async def delete_onboarding(user_id: str = Depends(get_user_id)):
+    """Delete user's onboarding data from DB."""
+    result = await user_service.delete_onboarding(user_id)
+    return success_response(result, "Onboarding data deleted")

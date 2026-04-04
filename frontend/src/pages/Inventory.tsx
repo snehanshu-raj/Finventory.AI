@@ -99,8 +99,11 @@ export default function Inventory() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Pantry Inventory</h1>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">Pantry Inventory</h1>
+          <p className="text-[var(--color-text-secondary)] mt-2">Manage your grocery items and low stock alerts</p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
         </div>
@@ -109,17 +112,23 @@ export default function Inventory() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Pantry Inventory</h1>
+    <div className="space-y-8 pb-8">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">Pantry Inventory</h1>
+        <p className="text-[var(--color-text-secondary)] mt-2">Manage your grocery items and low stock alerts</p>
+      </motion.div>
 
       {/* Low stock alert */}
       {lowStockCount > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
-          <AlertTriangle size={18} className="text-orange-400 shrink-0" />
-          <p className="text-sm text-orange-300">
-            <span className="font-semibold">{lowStockCount} items</span> need attention — low or out of stock!
-          </p>
-        </div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-500/20 to-orange-500/5 border border-orange-500/30 rounded-xl">
+          <AlertTriangle size={20} className="text-orange-400 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-orange-300">
+              {lowStockCount} item{lowStockCount !== 1 ? 's' : ''} need attention
+            </p>
+            <p className="text-xs text-orange-300/70">These items are low or out of stock</p>
+          </div>
+        </motion.div>
       )}
 
       {/* Filters */}
@@ -127,27 +136,27 @@ export default function Inventory() {
         <div className="relative flex-1 min-w-48">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-muted)]" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search items..."
-            className="w-full pl-9 pr-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500" />
+            className="w-full pl-9 pr-4 py-2.5 bg-[var(--color-surface)]/50 border border-[var(--color-border)] rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:bg-[var(--color-surface)] transition-all" />
         </div>
 
-        <div className="flex gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-0.5">
+        <div className="flex gap-1 bg-[var(--color-surface)]/50 border border-[var(--color-border)] rounded-lg p-1">
           {STATUS_TABS.map((tab) => (
             <button key={tab} onClick={() => setStatusFilter(tab)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium capitalize transition-colors
-                ${statusFilter === tab ? 'bg-sky-500 text-white' : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}>
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all
+                ${statusFilter === tab ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/20' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>
               {tab === 'out_of_stock' ? 'Out' : tab}
             </button>
           ))}
         </div>
 
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-          className="px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-sm outline-none">
+          className="px-3 py-2.5 bg-[var(--color-surface)]/50 border border-[var(--color-border)] rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:bg-[var(--color-surface)] transition-all">
           <option value="estimatedDaysLeft">Days Left</option>
           <option value="currentQuantity">Quantity</option>
           <option value="name">Name</option>
         </select>
 
-        <div className="flex gap-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-0.5">
+        <div className="flex gap-0.5 bg-[var(--color-surface)]/50 border border-[var(--color-border)] rounded-lg p-1">
           <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-sky-500 text-white' : 'text-[var(--color-muted)]'}`}><Grid3X3 size={16} /></button>
           <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-sky-500 text-white' : 'text-[var(--color-muted)]'}`}><List size={16} /></button>
         </div>

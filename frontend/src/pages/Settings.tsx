@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Mail, RefreshCw, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Mail, RefreshCw, Check, Zap } from 'lucide-react';
 import { gmailApi, type SyncRun } from '@/api/gmail';
 import { usersApi } from '@/api/users';
 import { useUserStore } from '@/store/userStore';
@@ -66,15 +67,18 @@ export default function Settings() {
   const runs = (syncRuns as unknown as SyncRun[] | undefined) ?? [];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="space-y-8 pb-8">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">Settings</h1>
+        <p className="text-[var(--color-text-secondary)] mt-2">Manage your account and integrations</p>
+      </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-0.5 w-fit">
+      <div className="flex gap-1 bg-[var(--color-surface)]/50 border border-[var(--color-border)] rounded-lg p-1 w-fit">
         {TABS.map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-              ${activeTab === tab ? 'bg-sky-500 text-white' : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all
+              ${activeTab === tab ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/20' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}`}>
             {tab}
           </button>
         ))}

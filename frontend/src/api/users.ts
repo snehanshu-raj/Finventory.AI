@@ -57,6 +57,9 @@ export const usersApi = {
   onboard: (data: OnboardingPayload) =>
     client.post<never, UserProfile>('/api/v1/users/onboarding', data),
 
+  checkOnboarding: () =>
+    client.get<never, { onboarded: boolean; user_id: string }>('/api/v1/users/check-onboarding'),
+
   getUser: (userId: string) =>
     client.get<never, UserProfile>(`/api/v1/users/${userId}`, { params: { user_id: undefined } }),
 

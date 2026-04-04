@@ -1,28 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Quicken Simplifi-inspired palette */
-  --color-bg: #F5F5F7;
-  --color-surface: #FFFFFF;
-  --color-surface-2: #F0F0F5;
-  --color-surface-3: #E8E8EE;
-  --color-primary: #6C5CE7;
-  --color-primary-hover: #5A4BD1;
-  --color-primary-light: rgba(108, 92, 231, 0.08);
-  --color-accent: #00B8D9;
-  --color-success: #36B37E;
-  --color-warning: #FFAB00;
-  --color-critical: #FF5630;
-  --color-danger: #FF5630;
-  --color-text: #1A1A2E;
-  --color-text-secondary: #4A4A6A;
-  --color-muted: #8E8EA9;
-  --color-border: rgba(0, 0, 0, 0.06);
-  --color-card-shadow: rgba(0, 0, 0, 0.04);
+  /* Modern premium design system */
+  --color-bg: #0f172a;
+  --color-bg-secondary: #1a2744;
+  --color-surface: #1e293b;
+  --color-surface-2: #334155;
+  --color-surface-3: #475569;
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: rgba(59, 130, 246, 0.08);
+  --color-accent: #06b6d4;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-critical: #ef4444;
+  --color-danger: #ef4444;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-muted: #94a3b8;
+  --color-border: rgba(148, 163, 184, 0.12);
+  --color-card-shadow: rgba(0, 0, 0, 0.3);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-accent: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'SF Mono', 'Cascadia Code', ui-monospace, monospace;
 
   --radius-card: 16px;
   --radius-btn: 12px;
@@ -51,20 +57,11 @@ body {
   overscroll-behavior: none;
 }
 
-/* Mobile device frame — centers the app in a phone-like viewport */
+/* Root container — full responsive */
 #root {
-  max-width: 430px;
-  margin: 0 auto;
   min-height: 100vh;
-  background: var(--color-bg);
+  background: linear-gradient(135deg, #0f172a 0%, #1a2744 100%);
   position: relative;
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.08);
-}
-
-@media (min-width: 431px) {
-  body {
-    background: #E8E8EE;
-  }
 }
 
 /* Scrollbar — thin and subtle */

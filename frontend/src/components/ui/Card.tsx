@@ -4,16 +4,20 @@ interface CardProps {
   children: ReactNode;
   className?: string;
   hover?: boolean;
+  gradient?: boolean;
 }
 
-export function Card({ children, className = '', hover = false }: CardProps) {
-  return (
-    <div
-      className={`bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5
-        ${hover ? 'hover:border-sky-500/30 hover:shadow-lg hover:shadow-sky-500/5 transition-all duration-200 cursor-pointer' : ''}
-        ${className}`}
-    >
-      {children}
-    </div>
-  );
+export function Card({ children, className = '', hover = false, gradient = false }: CardProps) {
+  const baseClasses = `
+    rounded-xl p-5 transition-all duration-300
+    ${gradient 
+      ? 'bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-2)] border border-[var(--color-border)]'
+      : 'bg-[var(--color-surface)]/60 backdrop-blur-xl border border-[var(--color-border)]'
+    }
+    ${hover 
+      ? 'hover:border-blue-400/50 hover:bg-[var(--color-surface)]/80 hover:shadow-xl hover:shadow-blue-500/10 cursor-pointer' 
+      : ''
+    }
+  `;
+  return <div className={`${baseClasses} ${className}`}>{children}</div>;
 }

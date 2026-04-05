@@ -13,8 +13,26 @@ from app.utils.storage import storage
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/jpg", "image/png"}
+ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+
+def _detect_image_type(file_bytes: bytes) -> str:
+    """Detect actual image format from magic bytes."""
+    if len(file_bytes) < 4:
+        return "image/jpeg"  # default
+    
+    # Check magic bytes (file signatures)
+    if file_bytes[:3] == b'\xff\xd8\xff':  # JPEG
+        return "image/jpeg"
+    elif file_bytes[:8] == b'\x89PNG\r\n\x1a\n':  # PNG
+        return "image/png"
+    elif file_bytes[:4] == b'RIFF' and file_bytes[8:12] == b'WEBP':  # WebP
+        return "image/webp"
+    elif file_bytes[:6] == b'GIF87a' or file_bytes[:6] == b'GIF89a':  # GIF
+        return "image/gif"
+    
+    return "image/jpeg"  # default fallback
 
 
 class ReceiptService:
@@ -28,10 +46,19 @@ class ReceiptService:
         file_bytes: bytes,
     ) -> dict:
         """Full upload pipeline: save ➜ extract ➜ store ➜ inventory ➜ prices."""
+        # Detect actual image format from magic bytes
+        actual_content_type = _detect_image_type(file_bytes)
+        if actual_content_type != content_type:
+            logger.info(
+                "Content-type mismatch: declared=%s, actual=%s, using actual",
+                content_type, actual_content_type
+            )
+            content_type = actual_content_type
+        
         # Validate
         if content_type not in ALLOWED_CONTENT_TYPES:
             raise ValidationException(
-                f"Invalid file type '{content_type}'. Allowed: jpeg, png."
+                f"Invalid file type '{content_type}'. Allowed: {', '.join(ALLOWED_CONTENT_TYPES)}."
             )
         if len(file_bytes) > MAX_FILE_SIZE:
             raise ValidationException(
@@ -55,7 +82,24 @@ class ReceiptService:
 
         # Build receipt document
         now = datetime.utcnow()
-        month_bucket = now.strftime("%Y-%m")
+        
+        # Validate extracted date – use today if extraction is too old or in future
+        extracted_date = extracted.transaction.purchased_at
+        if extracted_date:
+            # Check if date is unreasonable (more than 5 years old or in the future)
+            days_old = (now - extracted_date).days
+            if days_old > 1825 or days_old < 0:  # 5 years = ~1825 days
+                logger.warning(
+                    "Extracted date %s is unreasonable (days_old=%d), using upload date %s",
+                    extracted_date, days_old, now
+                )
+                purchased_at = now
+            else:
+                purchased_at = extracted_date
+        else:
+            purchased_at = now
+        
+        month_bucket = purchased_at.strftime("%Y-%m")
         items_data = [item.model_dump() for item in extracted.items]
 
         grocery_count = sum(1 for i in extracted.items if i.is_grocery)
@@ -86,7 +130,7 @@ class ReceiptService:
             },
             "transaction": {
                 "receiptNumber": extracted.transaction.receipt_number,
-                "purchasedAt": extracted.transaction.purchased_at or now,
+                "purchasedAt": purchased_at,
                 "currency": extracted.transaction.currency,
                 "subtotal": extracted.transaction.subtotal,
                 "tax": extracted.transaction.tax,

@@ -67,6 +67,51 @@ SENDER_PATTERNS = {
             "merchant": [r"(netflix|spotify|apple|google play|hulu|disney|youtube premium|adobe)"],
         },
     },
+    # Airlines (Spirit, United, Delta, Southwest, American, JetBlue, etc.)
+    r"spirit|united|delta|southwest|american\s*airlines|jetblue|frontier|allegiant|air\s*canada": {
+        "expense_type": "ride_share",
+        "category": "transport",
+        "patterns": {
+            "amount": [r"\$\s*([\d,]+\.?\d{0,2})", r"(?:total|amount|price)[:\s]*\$?([\d,]+\.?\d{0,2})"],
+            "merchant": [r"(spirit|united|delta|southwest|american|jet\s*blue|frontier|allegiant)"],
+        },
+    },
+    # Hotel / Rental (Airbnb, booking.com, hotels.com, Vrbo, etc.)
+    r"airbnb|booking\.com|hotels\.com|vrbo|hilton|marriott|hyatt|ihg|wyndham|expedia": {
+        "expense_type": "invoice",
+        "category": "travel",
+        "patterns": {
+            "amount": [r"\$\s*([\d,]+\.?\d{0,2})", r"(?:total|amount due|reservation total)[:\s]*\$?([\d,]+\.?\d{0,2})"],
+            "merchant": [r"(airbnb|booking|hotels|vrbo|hilton|marriott|hyatt|wyndham)"],
+        },
+    },
+    # Rental cars (Hertz, Avis, Budget, Enterprise, etc.)
+    r"hertz|avis|budget|enterprise|alamo|national|europcar": {
+        "expense_type": "invoice",
+        "category": "transport",
+        "patterns": {
+            "amount": [r"\$\s*([\d,]+\.?\d{0,2})", r"(?:total|amount due)[:\s]*\$?([\d,]+\.?\d{0,2})"],
+            "merchant": [r"(hertz|avis|budget|enterprise|alamo|national|europcar)"],
+        },
+    },
+    # Utilities / Rent (landlord, property manager, utility company)
+    r"rent|landlord|property|manager|apartment|utility|electric|gas\s+company|water|comcast|verizon|at&t": {
+        "expense_type": "invoice",
+        "category": "utilities",
+        "patterns": {
+            "amount": [r"(?:due|payment|amount|total)[:\s]*\$?([\d,]+\.?\d{0,2})", r"\$\s*([\d,]+\.?\d{0,2})"],
+            "merchant": [r"property|landlord|rent|utility|apartment"],
+        },
+    },
+    # Banks and Financial (Bank of America, Chase, Wells Fargo, etc.)
+    r"bank\s*of\s*america|chase|wells\s*fargo|citi|capital\s*one|navy\s*federal|payroll": {
+        "expense_type": "invoice",
+        "category": "other",
+        "patterns": {
+            "amount": [r"(?:amount|debit|withdrawal)[:\s]*\$?([\d,]+\.?\d{0,2})", r"\$\s*([\d,]+\.?\d{0,2})"],
+            "merchant": [r"(bank|chase|wells|citi|capital)"],
+        },
+    },
     # Credit card alerts
     r"(?:card|transaction|purchase|charge)\s*(?:alert|notification|confirmation)": {
         "expense_type": "card_alert",
@@ -277,6 +322,24 @@ class GmailExpenseParser:
         return None
 
     @staticmethod
+    def _html_to_text(html: str) -> str:
+        """Convert HTML to plain text, handling common entities."""
+        try:
+            from bs4 import BeautifulSoup
+            text = BeautifulSoup(html, "html.parser").get_text(separator=" ", strip=True)
+        except ImportError:
+            # Strip HTML tags with regex
+            text = re.sub(r"<[^>]+>", " ", html)
+        
+        # Unescape HTML entities
+        import html as html_module
+        text = html_module.unescape(text)
+        
+        # Normalize whitespace
+        text = re.sub(r"\s+", " ", text).strip()
+        return text
+
+    @staticmethod
     def _get_body_text(message: dict) -> str:
         """Extract plain text from Gmail message payload."""
         import base64
@@ -287,12 +350,20 @@ class GmailExpenseParser:
             except Exception:
                 return ""
 
+        def _is_html(text: str) -> bool:
+            """Check if text is HTML."""
+            return bool(re.search(r'<!DOCTYPE|<html|<body|<div|<p|<span|&(?:[a-zA-Z]+|#\d+);', text, re.IGNORECASE))
+
         payload = message.get("payload", {})
 
         # Simple body
         body_data = payload.get("body", {}).get("data", "")
         if body_data:
-            return _decode(body_data)
+            decoded = _decode(body_data)
+            # Check if it's HTML and convert to plain text
+            if _is_html(decoded):
+                return GmailExpenseParser._html_to_text(decoded)
+            return decoded
 
         # Multipart
         parts = payload.get("parts", [])
@@ -310,12 +381,7 @@ class GmailExpenseParser:
                 data = part.get("body", {}).get("data", "")
                 if data:
                     html = _decode(data)
-                    try:
-                        from bs4 import BeautifulSoup
-                        return BeautifulSoup(html, "html.parser").get_text(separator=" ", strip=True)
-                    except ImportError:
-                        # Strip HTML tags with regex
-                        return re.sub(r"<[^>]+>", " ", html)
+                    return GmailExpenseParser._html_to_text(html)
 
         return message.get("snippet", "")
 

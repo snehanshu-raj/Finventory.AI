@@ -62,6 +62,7 @@ Available pantry items:
 {pantry_items}
 
 Constraints:
+- Suggest only from available items.
 - Max prep time: {max_prep_minutes} minutes
 - Vegetarian only: {vegetarian}
 - Budget mode (use what's available): {budget_mode}
@@ -209,11 +210,30 @@ class ClaudeProvider(LLMProvider):
 
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.model = "claude-sonnet-4-20250514"
+        # Use claude-3-5-sonnet - the latest available model
+        self.model = "claude-3-5-sonnet-20241022"
 
     async def vision_extract(self, image_bytes: bytes, content_type: str) -> dict:
         """Extract receipt data using Claude vision."""
+        logger.info(
+            "Claude vision extract: image_size=%d bytes, content_type=%s",
+            len(image_bytes), content_type
+        )
+        
+        # Validate image size (Claude has limits)
+        max_size = 20 * 1024 * 1024  # 20MB
+        if len(image_bytes) > max_size:
+            raise ValueError(f"Image too large: {len(image_bytes)} bytes (max {max_size})")
+        
+        # Validate content type
+        valid_types = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+        if content_type not in valid_types:
+            logger.warning("Invalid content_type: %s, using image/jpeg", content_type)
+            content_type = "image/jpeg"
+        
         b64_image = base64.b64encode(image_bytes).decode("utf-8")
+        logger.info("Base64 encoded image: %d chars", len(b64_image))
+        
         url = f"{self.BASE_URL}/messages"
         headers = {
             "x-api-key": self.api_key,
@@ -244,13 +264,22 @@ class ClaudeProvider(LLMProvider):
             ],
         }
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(url, json=payload, headers=headers)
-            response.raise_for_status()
-            result = response.json()
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(url, json=payload, headers=headers)
+                if response.status_code != 200:
+                    logger.error(
+                        "Claude API error %d: %s",
+                        response.status_code, response.text
+                    )
+                response.raise_for_status()
+                result = response.json()
 
-        text = result["content"][0]["text"]
-        return self._parse_json(text)
+            text = result["content"][0]["text"]
+            return self._parse_json(text)
+        except Exception as e:
+            logger.exception("Claude vision extraction failed: %s", e)
+            raise
 
     async def generate_text(self, prompt: str) -> str:
         """Generate text using Claude."""

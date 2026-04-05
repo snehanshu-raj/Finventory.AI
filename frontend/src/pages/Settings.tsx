@@ -105,7 +105,7 @@ export default function Settings() {
                     Last synced: {gs?.last_synced_at ? formatRelative(gs.last_synced_at) : 'Never'}
                   </p>
                 </div>
-                <button onClick={() => syncMutation.mutate(0)} disabled={syncMutation.isPending}
+                <button onClick={() => syncMutation.mutate(7)} disabled={syncMutation.isPending}
                   className="flex items-center gap-1.5 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50">
                   <RefreshCw size={14} className={syncMutation.isPending ? 'animate-spin' : ''} />
                   {syncMutation.isPending ? 'Syncing...' : 'Sync Now'}

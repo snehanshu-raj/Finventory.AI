@@ -53,8 +53,8 @@ export default function Dashboard() {
 
   const handleSync = async () => {
     try {
-      console.log('Starting Gmail sync with days_back=0...');
-      const result = await gmailApi.sync(0);
+      console.log('Starting Gmail sync with days_back=7...');
+      const result = await gmailApi.sync(7);
       console.log('Gmail sync result:', result);
       toast.success('Gmail synced!');
     } catch (err) {

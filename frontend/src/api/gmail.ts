@@ -32,7 +32,7 @@ export const gmailApi = {
     client.get<never, GmailStatus>('/api/v1/integrations/gmail/status'),
 
   sync: (daysBack = 0) =>
-    client.post<never, SyncResult>('/api/v1/integrations/gmail/sync', null, {
+    client.post<never, SyncResult>('/api/v1/integrations/gmail/fetch-and-preview', null, {
       params: { days_back: daysBack },
     }),
 

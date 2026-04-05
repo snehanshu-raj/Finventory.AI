@@ -11,6 +11,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: '0.0.0.0', // Listen on all interfaces
     allowedHosts: [
       'localhost',
       '127.0.0.1',
@@ -22,6 +23,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
+        rewrite: (path) => path,
       },
     },
   },

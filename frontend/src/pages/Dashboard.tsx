@@ -53,9 +53,14 @@ export default function Dashboard() {
 
   const handleSync = async () => {
     try {
-      await gmailApi.sync(0);
+      console.log('Starting Gmail sync with days_back=0...');
+      const result = await gmailApi.sync(0);
+      console.log('Gmail sync result:', result);
       toast.success('Gmail synced!');
-    } catch { /* error handled by interceptor */ }
+    } catch (err) {
+      console.error('Gmail sync failed:', err);
+      /* error handled by interceptor */
+    }
   };
 
   if (isLoading) {

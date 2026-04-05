@@ -44,6 +44,24 @@ class GmailSyncService:
         sender_filter = " OR ".join(f"from:{s}" for s in EXPENSE_SENDERS)
         return f"after:{date_str} ({EXPENSE_KEYWORDS} OR {sender_filter})"
 
+    @staticmethod
+    def _normalize_date(date_val) -> datetime:
+        """Convert various date formats to datetime object for MongoDB storage."""
+        from dateutil import parser as date_parser
+        
+        if isinstance(date_val, datetime):
+            return date_val
+        
+        if isinstance(date_val, str):
+            try:
+                # Try parsing with dateutil first (handles many formats)
+                return date_parser.parse(date_val)
+            except (ValueError, TypeError, AttributeError):
+                pass
+        
+        # Default to current time if parsing fails
+        return datetime.utcnow()
+
     async def sync_emails(self, user_id: str, days_back: int = 0) -> dict:
         """Full sync pipeline: fetch → parse → store → log.
         
@@ -133,7 +151,7 @@ class GmailSyncService:
                         "amount": parsed.get("amount", 0),
                         "currency": parsed.get("currency", "USD"),
                         "tax": parsed.get("tax"),
-                        "transactionAt": parsed.get("transactionAt") or datetime.utcnow(),
+                        "transactionAt": self._normalize_date(parsed.get("transactionAt")),
                         "category": parsed.get("category", "other"),
                         "paymentMethod": parsed.get("paymentMethod"),
                         "confidence": parsed.get("confidence", 0),

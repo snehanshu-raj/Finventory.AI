@@ -2,8 +2,18 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useUserStore } from '@/store/userStore';
 
+// Determine API base URL based on environment
+const getBaseURL = () => {
+  // If running on localhost, connect directly to backend
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:8000';
+  }
+  // Otherwise use relative paths (works for ngrok, production, etc.)
+  return '/';
+};
+
 const client = axios.create({
-  baseURL: '/', // Use relative paths - works through ngrok, localhost, and all hosts
+  baseURL: getBaseURL(),
   timeout: 30_000,
 });
 

@@ -456,7 +456,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 👨‍💻 Author
 
-**Built by SRJ** - Full-stack developer passionate about financial automation and AI-powered applications.
+**Built by Snehanshu and Claire** - Full-stack developer passionate about financial automation and AI-powered applications.
 
 ---
 
